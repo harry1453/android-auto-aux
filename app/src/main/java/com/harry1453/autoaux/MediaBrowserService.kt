@@ -33,8 +33,10 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
 
     companion object {
         const val ROOT_ID = "root"
-        private val MEDIA_ITEM = MediaBrowserCompat.MediaItem(MediaDescriptionCompat.Builder()
-            .setTitle("Aux Input")
-            .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+        private val MEDIA_ITEM = MediaBrowserCompat.MediaItem(
+            MediaDescriptionCompat.Builder()
+                .setMediaId("aux_input")
+                .setTitle("Aux Input")
+                .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
     }
 }

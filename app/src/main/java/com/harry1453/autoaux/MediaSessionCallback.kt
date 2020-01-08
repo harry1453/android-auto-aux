@@ -4,6 +4,10 @@ import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
 
 class MediaSessionCallback(private val mediaSession: MediaSessionCompat, private val audioMirror: AudioMirror) : MediaSessionCompat.Callback() {
+    init {
+        mediaSession.setPlaybackState(stoppedState)
+    }
+
     private val onError: (Throwable) -> Unit = {
         it.printStackTrace()
         val errorMessage = if (it.message.isNullOrBlank()) {

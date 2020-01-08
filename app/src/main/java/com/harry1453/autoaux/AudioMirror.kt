@@ -25,7 +25,7 @@ class AudioMirror {
 
     fun start(onError: (Throwable) -> Unit) {
         synchronized(lock) {
-            if (disposable != null) {
+            if (disposable == null) {
                 disposable = startMirroring(onError)
             }
         }
