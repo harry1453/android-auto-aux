@@ -20,19 +20,19 @@ class MainActivity : AppCompatActivity() {
     private fun feedbackAudio(): Completable {
         return Completable.create { emitter ->
             Log.e("AAA", "Starting")
-            val buffer = ByteArray(bufferSizeIn)
-            val audioRecord = AudioRecord(audioSource, sampleRate, channelInConfig, encoding, bufferSizeIn)
+            val buffer = ByteArray(bufferSize)
+            val audioRecord = AudioRecord(audioSource, sampleRate, channelConfig, encoding, bufferSize)
             try {
-                val audioTrack = AudioTrack(audioAttributes, audioFormat, bufferSizeOut, AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE)
+                val audioTrack = AudioTrack(audioAttributes, audioFormat, bufferSize, AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE)
                 try {
                     audioRecord.startRecording()
                     audioTrack.play()
 
                     Log.e("AAA", "Begin loop")
                     while (!emitter.isDisposed) {
-                        val readSamples = audioRecord.read(buffer, 0, buffer.size, readMode)
+                        val readSamples = audioRecord.read(buffer, 0, buffer.size)
                         if (readSamples > 0) {
-                            val writeSamples = audioTrack.write(buffer, 0, readSamples, writeMode)
+                            val writeSamples = audioTrack.write(buffer, 0, readSamples)
                             if (writeSamples <= 0) {
                                 Log.e("AAA", "writeSamples was $writeSamples")
                             }
@@ -50,21 +50,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private val sampleRate = 48000
+    private val sampleRate = 96000
 
-    private val readMode = AudioRecord.READ_BLOCKING
-    private val writeMode = AudioTrack.WRITE_BLOCKING
-    private val audioSource = MediaRecorder.AudioSource.MIC
-    private val channelInConfig = AudioFormat.CHANNEL_IN_STEREO
-    private val channelOutConfig = AudioFormat.CHANNEL_OUT_STEREO
+    private val audioSource = MediaRecorder.AudioSource.UNPROCESSED
+    private val channelConfig = AudioFormat.CHANNEL_IN_STEREO
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
 
-    private val bufferSizeIn = AudioRecord.getMinBufferSize(sampleRate, channelInConfig, encoding)
-            .apply {
-                if (this <= 0) error("Error getting min buffer size: $this")
-            }
-
-    private val bufferSizeOut = AudioRecord.getMinBufferSize(sampleRate, channelOutConfig, encoding)
+    private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, encoding)
             .apply {
                 if (this <= 0) error("Error getting min buffer size: $this")
             }
