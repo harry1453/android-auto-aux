@@ -1,17 +1,13 @@
 package com.harry1453.autoaux
 
 import android.content.ComponentName
-import android.media.*
-import androidx.appcompat.app.AppCompatActivity
+import android.media.AudioManager
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
-import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaControllerCompat
 import android.support.v4.media.session.PlaybackStateCompat
-import android.util.Log
-import android.widget.ImageView
-import io.reactivex.Completable
-import io.reactivex.schedulers.Schedulers
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
 import kotlinx.android.synthetic.main.activity_main.*
 
 class MainActivity : AppCompatActivity() {
@@ -25,19 +21,6 @@ class MainActivity : AppCompatActivity() {
             }
             buildTransportControls()
         }
-
-        override fun onConnectionSuspended() {
-            // The Service has crashed. Disable transport controls until it automatically reconnects
-        }
-
-        override fun onConnectionFailed() {
-            // The Service has refused our connection
-        }
-    }
-
-    private var controllerCallback = object : MediaControllerCompat.Callback() {
-        override fun onMetadataChanged(metadata: MediaMetadataCompat?) {}
-        override fun onPlaybackStateChanged(state: PlaybackStateCompat?) {}
     }
 
     fun buildTransportControls() {
@@ -48,18 +31,13 @@ class MainActivity : AppCompatActivity() {
                 val pbState = mediaController.playbackState.state
                 if (pbState == PlaybackStateCompat.STATE_PLAYING) {
                     mediaController.transportControls.stop()
+                    Toast.makeText(this@MainActivity, "Stopped", Toast.LENGTH_LONG).show()
                 } else {
                     mediaController.transportControls.play()
+                    Toast.makeText(this@MainActivity, "Mirroring", Toast.LENGTH_LONG).show()
                 }
             }
         }
-
-        // Display the initial state
-        val metadata = mediaController.metadata
-        val pbState = mediaController.playbackState
-
-        // Register a Callback to stay in sync
-        mediaController.registerCallback(controllerCallback)
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -81,7 +59,6 @@ class MainActivity : AppCompatActivity() {
 
     override fun onStop() {
         super.onStop()
-        MediaControllerCompat.getMediaController(this)?.unregisterCallback(controllerCallback)
         mediaBrowser.disconnect()
     }
 }

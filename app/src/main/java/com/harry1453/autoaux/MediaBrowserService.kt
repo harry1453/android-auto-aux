@@ -36,7 +36,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         private val MEDIA_ITEM = MediaBrowserCompat.MediaItem(
             MediaDescriptionCompat.Builder()
                 .setMediaId("aux_input")
-                .setTitle("Aux Input")
+                .setTitle("Auxiliary Input")
                 .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
     }
 }
