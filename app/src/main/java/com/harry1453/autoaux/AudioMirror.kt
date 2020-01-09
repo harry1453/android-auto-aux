@@ -71,7 +71,7 @@ class AudioMirror {
         }
     }
 
-    private val sampleRate = 96000
+    private val sampleRate = 48000
 
     private val audioSource = MediaRecorder.AudioSource.UNPROCESSED
     private val channelConfig = AudioFormat.CHANNEL_IN_STEREO
