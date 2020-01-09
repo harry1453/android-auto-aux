@@ -16,9 +16,9 @@ class MediaSessionCallback(private val mediaSession: MediaSessionCompat, private
     private val onError: (Throwable) -> Unit = {
         it.printStackTrace()
         val errorMessage = if (it.message.isNullOrBlank()) {
-            "Error: ${it.javaClass.name}"
+            "Unknown Error: ${it.javaClass.name}"
         } else {
-            "Error: ${it.javaClass.name}: ${it.message}"
+            "Error: ${it.message}"
         }
         mediaSession.setPlaybackState(PlaybackStateCompat.Builder()
             .setState(PlaybackStateCompat.STATE_ERROR, 0, 1F, playStart)

@@ -1,7 +1,11 @@
 package com.harry1453.autoaux
 
+import android.Manifest
+import android.content.Context
+import android.content.pm.PackageManager
 import android.media.*
 import android.util.Log
+import androidx.core.content.ContextCompat
 import io.reactivex.Completable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
@@ -9,7 +13,7 @@ import io.reactivex.schedulers.Schedulers
 /**
  * A class that takes microphone input and mirrors it to the device's audio output
  */
-class AudioMirror {
+class AudioMirror(private val context: Context) {
     private var disposable: Disposable? = null
     private val lock = Any()
 
@@ -40,6 +44,7 @@ class AudioMirror {
 
     private fun mirror(): Completable {
         return Completable.create { emitter ->
+            check(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) { "Permission to Record Audio Not Granted" }
             Log.e("AAA", "Starting")
             val buffer = ByteArray(bufferSize)
             val audioRecord = AudioRecord(audioSource, sampleRate, channelConfig, encoding, bufferSize)
@@ -74,7 +79,7 @@ class AudioMirror {
     private val sampleRate = 48000
 
     private val audioSource = MediaRecorder.AudioSource.UNPROCESSED
-    private val channelConfig = AudioFormat.CHANNEL_IN_MONO
+    private val channelConfig = AudioFormat.CHANNEL_IN_STEREO
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
 
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, encoding)

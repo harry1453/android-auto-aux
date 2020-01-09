@@ -10,7 +10,7 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     override fun onCreate() {
         super.onCreate()
 
-        val audioMirror = AudioMirror()
+        val audioMirror = AudioMirror(this)
 
         val session = MediaSessionCompat(this, "AAAux").apply {
             setCallback(MediaSessionCallback(this, audioMirror))
