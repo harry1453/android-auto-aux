@@ -74,12 +74,12 @@ class AudioMirror {
     private val sampleRate = 48000
 
     private val audioSource = MediaRecorder.AudioSource.UNPROCESSED
-    private val channelConfig = AudioFormat.CHANNEL_IN_STEREO
+    private val channelConfig = AudioFormat.CHANNEL_IN_MONO
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
 
     private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, encoding)
-        .apply {
-            if (this <= 0) error("Error getting min buffer size: $this")
+        .also {
+            if (it <= 0) error("Error getting min buffer size: $it")
         }
 
     private val audioAttributes = AudioAttributes.Builder()
