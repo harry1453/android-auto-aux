@@ -2,6 +2,7 @@ package com.harry1453.autoaux
 
 import android.Manifest
 import android.content.Context
+import android.content.Context.AUDIO_SERVICE
 import android.content.pm.PackageManager
 import android.media.*
 import android.util.Log
@@ -9,6 +10,9 @@ import androidx.core.content.ContextCompat
 import io.reactivex.Completable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
+import android.media.AudioDeviceInfo
+import android.media.AudioManager
+
 
 /**
  * A class that takes microphone input and mirrors it to the device's audio output
@@ -47,10 +51,31 @@ class AudioMirror(private val context: Context) {
             check(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) { "Permission to Record Audio Not Granted" }
             Log.e("AAA", "Starting")
             val buffer = ByteArray(bufferSize)
-            val audioRecord = AudioRecord(audioSource, sampleRate, channelConfig, encoding, bufferSize)
+            val audioRecord = AudioRecord(audioSource, sampleRate, AudioFormat.CHANNEL_IN_STEREO, encoding, bufferSize)
             try {
                 val audioTrack = AudioTrack(audioAttributes, audioFormat, bufferSize, AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE)
                 try {
+                    /*
+                    val manager = context.getSystemService(AUDIO_SERVICE) as AudioManager
+                    manager.mode = AudioManager.MODE_NORMAL
+
+                    val inputDevice = manager.getDevices(AudioManager.GET_DEVICES_INPUTS).find { deviceInfo ->
+                        when(deviceInfo.type) {
+                            AudioDeviceInfo.TYPE_AUX_LINE -> true
+                            else -> false
+                        }
+                    }
+                    val outputDevice = manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).find { deviceInfo ->
+                        when(deviceInfo.type) {
+                            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_USB_ACCESSORY -> true
+                            else -> false
+                        }
+                    }
+
+                    if (inputDevice != null) audioRecord.preferredDevice = inputDevice
+                    if (outputDevice != null) audioTrack.preferredDevice = outputDevice
+                    */
+
                     audioRecord.startRecording()
                     audioTrack.play()
 
@@ -79,10 +104,9 @@ class AudioMirror(private val context: Context) {
     private val sampleRate = 48000
 
     private val audioSource = MediaRecorder.AudioSource.UNPROCESSED
-    private val channelConfig = AudioFormat.CHANNEL_IN_STEREO
     private val encoding = AudioFormat.ENCODING_PCM_16BIT
 
-    private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, channelConfig, encoding)
+    private val bufferSize = AudioRecord.getMinBufferSize(sampleRate, AudioFormat.CHANNEL_IN_STEREO, encoding)
         .also {
             if (it <= 0) error("Error getting min buffer size: $it")
         }
@@ -93,6 +117,7 @@ class AudioMirror(private val context: Context) {
         .build()
 
     private val audioFormat = AudioFormat.Builder()
+        .setChannelMask(AudioFormat.CHANNEL_OUT_STEREO)
         .setEncoding(encoding)
         .setSampleRate(sampleRate)
         .build()

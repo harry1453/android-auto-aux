@@ -1,9 +1,13 @@
 package com.harry1453.autoaux
 
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.os.Build
 import android.os.Bundle
 import android.support.v4.media.MediaBrowserCompat
 import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
+import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
 
 class MediaBrowserService : MediaBrowserServiceCompat() {
@@ -15,6 +19,20 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         val session = MediaSessionCompat(this, "AAAux").apply {
             setCallback(MediaSessionCallback(this, audioMirror))
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val mChannel = NotificationChannel("channel", "name", NotificationManager.IMPORTANCE_DEFAULT)
+            val notificationManager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
+            notificationManager.createNotificationChannel(mChannel)
+        }
+
+        startForeground(SERVICE_ID, NotificationCompat.Builder(this, "channel")
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
+                .setShowActionsInCompactView(1 /* #1: pause button \*/)
+                .setMediaSession(session.sessionToken))
+            .setContentTitle("Aux Input")
+            .build())
 
         sessionToken = session.sessionToken
     }
@@ -32,7 +50,8 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
     }
 
     companion object {
-        const val ROOT_ID = "root"
+        private const val SERVICE_ID = 1001
+        private const val ROOT_ID = "root"
         private val MEDIA_ITEM = MediaBrowserCompat.MediaItem(
             MediaDescriptionCompat.Builder()
                 .setMediaId("aux_input")
