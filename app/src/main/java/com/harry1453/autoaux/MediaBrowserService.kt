@@ -9,6 +9,7 @@ import android.support.v4.media.MediaDescriptionCompat
 import android.support.v4.media.session.MediaSessionCompat
 import androidx.core.app.NotificationCompat
 import androidx.media.MediaBrowserServiceCompat
+import android.graphics.BitmapFactory
 
 class MediaBrowserService : MediaBrowserServiceCompat() {
     override fun onCreate() {
@@ -17,8 +18,10 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         val audioMirror = AudioMirror(this)
 
         val session = MediaSessionCompat(this, "AAAux").apply {
-            setCallback(MediaSessionCallback(this, audioMirror))
+            setCallback(MediaSessionCallback(this, BitmapFactory.decodeResource(resources, R.mipmap.aux_cable_light_darkbg), audioMirror))
         }
+
+        sessionToken = session.sessionToken
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             val mChannel = NotificationChannel("channel", "name", NotificationManager.IMPORTANCE_DEFAULT)
@@ -29,17 +32,15 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         startForeground(SERVICE_ID, NotificationCompat.Builder(this, "channel")
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setStyle(androidx.media.app.NotificationCompat.MediaStyle()
-                .setShowActionsInCompactView(1 /* #1: pause button \*/)
+                .setShowActionsInCompactView(1)
                 .setMediaSession(session.sessionToken))
             .setContentTitle("Aux Input")
             .build())
-
-        sessionToken = session.sessionToken
     }
 
     override fun onLoadChildren(parentId: String, result: Result<List<MediaBrowserCompat.MediaItem>>) {
         when (parentId) {
-            ROOT_ID -> result.sendResult(listOf(MEDIA_ITEM))
+            ROOT_ID -> result.sendResult(listOf(mediaItem))
             else -> result.sendError(null)
         }
     }
@@ -49,13 +50,17 @@ class MediaBrowserService : MediaBrowserServiceCompat() {
         return BrowserRoot(ROOT_ID, null)
     }
 
-    companion object {
-        private const val SERVICE_ID = 1001
-        private const val ROOT_ID = "root"
-        private val MEDIA_ITEM = MediaBrowserCompat.MediaItem(
-            MediaDescriptionCompat.Builder()
+
+    private val mediaItem by lazy {
+        MediaBrowserCompat.MediaItem(MediaDescriptionCompat.Builder()
+                .setIconBitmap(BitmapFactory.decodeResource(resources, R.mipmap.aux_cable_light_darkbg))
                 .setMediaId("aux_input")
                 .setTitle("Auxiliary Input")
                 .build(), MediaBrowserCompat.MediaItem.FLAG_PLAYABLE)
+    }
+
+    companion object {
+        private const val SERVICE_ID = 1001
+        private const val ROOT_ID = "root"
     }
 }

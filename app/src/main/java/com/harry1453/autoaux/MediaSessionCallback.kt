@@ -1,14 +1,13 @@
 package com.harry1453.autoaux
 
+import android.graphics.Bitmap
 import android.media.MediaMetadata
-import android.os.SystemClock
 import android.support.v4.media.MediaMetadataCompat
 import android.support.v4.media.session.MediaSessionCompat
 import android.support.v4.media.session.PlaybackStateCompat
+import android.support.v4.media.session.PlaybackStateCompat.PLAYBACK_POSITION_UNKNOWN
 
-class MediaSessionCallback(private val mediaSession: MediaSessionCompat, private val audioMirror: AudioMirror) : MediaSessionCompat.Callback() {
-    private var playStart = SystemClock.elapsedRealtime()
-
+class MediaSessionCallback(private val mediaSession: MediaSessionCompat, albumArt: Bitmap, private val audioMirror: AudioMirror) : MediaSessionCompat.Callback() {
     init {
         setStopped()
     }
@@ -21,7 +20,7 @@ class MediaSessionCallback(private val mediaSession: MediaSessionCompat, private
             "Error: ${it.message}"
         }
         mediaSession.setPlaybackState(PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_ERROR, 0, 1F, playStart)
+            .setState(PlaybackStateCompat.STATE_ERROR, PLAYBACK_POSITION_UNKNOWN, 1F)
             .setErrorMessage(PlaybackStateCompat.ERROR_CODE_APP_ERROR, errorMessage)
             .build())
     }
@@ -41,26 +40,26 @@ class MediaSessionCallback(private val mediaSession: MediaSessionCompat, private
     }
 
     private fun setMirroring() {
-        playStart = SystemClock.elapsedRealtime()
-        mediaSession.setMetadata(MIRROR_METADATA)
+        mediaSession.isActive = true
+        mediaSession.setMetadata(mirrorMetadata)
         mediaSession.setPlaybackState(PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_PLAYING, 0, 1F, playStart)
+            .setState(PlaybackStateCompat.STATE_PLAYING, PLAYBACK_POSITION_UNKNOWN, 1F)
             .setActions(PlaybackStateCompat.ACTION_STOP)
             .build())
     }
 
     private fun setStopped() {
-        mediaSession.setMetadata(MIRROR_METADATA)
+        mediaSession.isActive = false
+        mediaSession.setMetadata(mirrorMetadata)
         mediaSession.setPlaybackState(PlaybackStateCompat.Builder()
-            .setState(PlaybackStateCompat.STATE_STOPPED, 0, 1F, playStart)
+            .setState(PlaybackStateCompat.STATE_STOPPED, PLAYBACK_POSITION_UNKNOWN, 1F)
             .setActions(PlaybackStateCompat.ACTION_PLAY)
             .build())
     }
 
-    companion object {
-        private val MIRROR_METADATA = MediaMetadataCompat.Builder()
-            .putString(MediaMetadata.METADATA_KEY_TITLE, "Aux In")
-            .putString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, "Auxiliary Input")
-            .build()
-    }
+    private val mirrorMetadata = MediaMetadataCompat.Builder()
+        .putString(MediaMetadata.METADATA_KEY_TITLE, "Aux In")
+        .putString(MediaMetadata.METADATA_KEY_DISPLAY_DESCRIPTION, "Auxiliary Input")
+        .putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, albumArt)
+        .build()
 }
