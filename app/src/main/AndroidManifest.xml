@@ -17,10 +17,9 @@
             android:name="com.google.android.gms.car.application"
             android:resource="@xml/auto_app_desc" />
 
-        <meta-data android:name="com.google.android.gms.car.notification.SmallIcon"
-            android:resource="@mipmap/aux_cable_light_darkbg_round" />
-
-        <service android:name=".MediaBrowserService" android:exported="true">
+        <service android:name=".MediaBrowserService"
+            android:enabled="true"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.media.browse.MediaBrowserService"/>
             </intent-filter>

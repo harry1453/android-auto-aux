@@ -5,13 +5,12 @@ import android.content.Context
 import android.content.Context.AUDIO_SERVICE
 import android.content.pm.PackageManager
 import android.media.*
+import android.media.AudioManager.AUDIOFOCUS_REQUEST_GRANTED
 import android.util.Log
 import androidx.core.content.ContextCompat
 import io.reactivex.Completable
 import io.reactivex.disposables.Disposable
 import io.reactivex.schedulers.Schedulers
-import android.media.AudioDeviceInfo
-import android.media.AudioManager
 
 
 /**
@@ -46,6 +45,18 @@ class AudioMirror(private val context: Context) {
         }
     }
 
+    private fun getAudioFocus(): AudioFocusRequest {
+        val audioFocusRequest = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN).build()
+        val manager = context.getSystemService(AUDIO_SERVICE) as AudioManager
+        check(manager.requestAudioFocus(audioFocusRequest) == AUDIOFOCUS_REQUEST_GRANTED)
+        return audioFocusRequest
+    }
+
+    private fun AudioFocusRequest.release() {
+        val manager = context.getSystemService(AUDIO_SERVICE) as AudioManager
+        manager.abandonAudioFocusRequest(this)
+    }
+
     private fun mirror(): Completable {
         return Completable.create { emitter ->
             check(ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED) { "Permission to Record Audio Not Granted" }
@@ -54,28 +65,8 @@ class AudioMirror(private val context: Context) {
             val audioRecord = AudioRecord(audioSource, sampleRate, AudioFormat.CHANNEL_IN_STEREO, encoding, bufferSize)
             try {
                 val audioTrack = AudioTrack(audioAttributes, audioFormat, bufferSize, AudioTrack.MODE_STREAM, AudioManager.AUDIO_SESSION_ID_GENERATE)
+                val audioFocus = getAudioFocus()
                 try {
-                    /*
-                    val manager = context.getSystemService(AUDIO_SERVICE) as AudioManager
-                    manager.mode = AudioManager.MODE_NORMAL
-
-                    val inputDevice = manager.getDevices(AudioManager.GET_DEVICES_INPUTS).find { deviceInfo ->
-                        when(deviceInfo.type) {
-                            AudioDeviceInfo.TYPE_AUX_LINE -> true
-                            else -> false
-                        }
-                    }
-                    val outputDevice = manager.getDevices(AudioManager.GET_DEVICES_OUTPUTS).find { deviceInfo ->
-                        when(deviceInfo.type) {
-                            AudioDeviceInfo.TYPE_BLUETOOTH_A2DP, AudioDeviceInfo.TYPE_USB_ACCESSORY -> true
-                            else -> false
-                        }
-                    }
-
-                    if (inputDevice != null) audioRecord.preferredDevice = inputDevice
-                    if (outputDevice != null) audioTrack.preferredDevice = outputDevice
-                    */
-
                     audioRecord.startRecording()
                     audioTrack.play()
 
@@ -92,6 +83,7 @@ class AudioMirror(private val context: Context) {
                         }
                     }
                 } finally {
+                    audioFocus.release()
                     audioTrack.release()
                 }
             } finally {
